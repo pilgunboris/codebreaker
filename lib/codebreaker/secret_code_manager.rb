@@ -1,28 +1,39 @@
+require 'json'
+
 module Codebreaker
   class SecretCodeManager
-    DEFAULT_ATTEMPTS_COUNT = 8
+    SECRET_CODE_RANGE = 1..6
 
     def initialize(current_round)
-      @new_code = false
       @current_round = current_round
     end
 
-    def read_code
+    def code
+      if current_round == 1
+        generate_code
+      else
+        read_from_file
+      end
+    end
+
+    private
+
+    def read_from_file
+      content = JSON.parse(File.read('secret_code_storage.json'))
+      content['code']
+    end
+
+    def write_to_file(code)
+      json = { code: code }.to_json
+      File.open('secret_code_storage.json', 'w+') do |f|
+        f.write(json)
+      end
     end
 
     def generate_code
-
-    end
-
-    alias_method :new_code, :new_code?
-
-    def start(user_code)
-      @secret_code = []
-      @user_code = user_code
-      4.times do
-        @secret_code.push(rand(SECRET_CODE_RANGE))
-      end
-      p @secret_code
+      code = 4.times.map { rand(SECRET_CODE_RANGE) }
+      write_to_file(code)
+      code
     end
 
     attr_accessor :new_code, :current_round
